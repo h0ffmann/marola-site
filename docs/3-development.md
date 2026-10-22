@@ -57,9 +57,18 @@ MAROLA_RUNNER_REPO=marola-dev/marola-site MAROLA_RUNNER_PREFIX=marola-site \
   MAROLA_RUNNER_LABELS=marola-br just runners 1
 ```
 
-A public repo's self-hosted runner runs whatever a workflow in a pull request asks it to, so keep
-Settings → Actions → "Approval for running fork pull request workflows" on *all external
-contributors*. `just site-build` works the same from any machine in Brazil.
+Then install its guard and restart the runner:
+
+```bash
+just runner-guard   # ~/.marola-runners/marola-site-1 by default
+```
+
+A public repo's self-hosted runner runs whatever a workflow in a pull request asks it to, and an
+org member's pull request runs without approval. So the runner itself refuses every job that is
+not `site.yml`, started by hand, by an owner: `scripts/runner-guard.sh`, its job-started hook
+(`ACTIONS_RUNNER_HOOK_JOB_STARTED` in the runner's `.env`), copied outside the workspace and
+checking with the machine's own `gh` login. Keep Settings → Actions → "Approval for running fork
+pull request workflows" on *all external contributors* as well. `just site-build` works the same from any machine in Brazil.
 
 ## The `site-data` branch layout
 
