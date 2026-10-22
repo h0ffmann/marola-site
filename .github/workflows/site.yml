@@ -29,7 +29,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Only an owner (repo admin) may put a job on the maintainer's machine. Checked on GitHub's runner,
+  # so a refused run never reaches it. A re-run counts as its re-runner's (triggering_actor).
+  owner:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - name: The person who started the run is an owner
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ACTOR: ${{ github.triggering_actor }}
+        run: |
+          perm="$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$ACTOR/permission" --jq .permission)"
+          [ "$perm" = admin ] || { echo "::error::$ACTOR has '$perm' on this repo: only an owner (admin) may run site.yml on the self-hosted runner."; exit 1; }
+          echo "$ACTOR is an owner"
+
   build:
+    needs: owner
     # #4: INEA (Rio) and INEMA (Bahia) answer only Brazilian addresses, so the boards are built on a
     # runner in Brazil (`just runners` from the devkit, registered to this repo with this label)
     # and reach them directly. No proxy, no inbound port.

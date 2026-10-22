@@ -48,7 +48,9 @@ GitHub. The deploy job stays on GitHub's runners.
 
 `site.yml` runs only by hand for now, from the Actions tab or `gh workflow run site.yml` (pick an
 area, or `all`, the default). With the runner off, a run waits in the queue and marola.dev keeps
-the last deployed site. Registering the runner, from the devkit:
+the last deployed site. Only an owner (a repo admin) can run it: the `owner` job, on GitHub's
+runner, fails the run before the build job reaches the self-hosted one. Registering the runner,
+from the devkit:
 
 ```bash
 MAROLA_RUNNER_REPO=marola-dev/marola-site MAROLA_RUNNER_PREFIX=marola-site \
