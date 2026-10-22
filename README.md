@@ -43,7 +43,7 @@ GitHub Pages as a fallback. `404.html` forwards `marola.dev/docs/*` to [docs.mar
 | The areas | [`site/areas.json`](https://github.com/marola-dev/marola-site/blob/main/site/areas.json) |
 | The board contract | the image's `board.schema.json`, vendored as [`site/board.schema.json`](https://github.com/marola-dev/marola-site/blob/main/site/board.schema.json) |
 | The deploy workflow | [`site.yml`](https://github.com/marola-dev/marola-site/blob/main/.github/workflows/site.yml) |
-| The Brazilian proxy pool (INEA and INEMA; the build's flight check needs it) | [`ops/br-proxy/`](https://github.com/marola-dev/marola-site/tree/main/ops/br-proxy); join it: [`JOIN.md`](https://github.com/marola-dev/marola-site/blob/main/ops/br-proxy/JOIN.md) |
+| The self-hosted runner in Brazil (INEA and INEMA) | [`docs/3-development.md`](docs/3-development.md#the-self-hosted-runner-in-brazil) |
 
 ## Contracts
 

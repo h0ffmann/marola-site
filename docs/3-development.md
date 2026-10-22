@@ -12,9 +12,8 @@ PRs: the app's first, then this bump.
 
 ## The build and deploy (`site.yml`)
 
-Runs on a schedule (every three hours), on a push to `main` touching `site/**`, `marola-image` or
-the workflow itself, on `repository_dispatch: site-data-updated` (sent by every `site-data`
-writer), and on `workflow_dispatch` (optionally one area). `concurrency: site` queues a run rather
+Runs only on `workflow_dispatch` for now (one area, or `all`, the default), on the self-hosted
+runner [below](#the-self-hosted-runner-in-brazil); no schedule, push or `repository_dispatch`. `concurrency: site` queues a run rather
 than cancelling one that is already building.
 
 The job: pull the pinned image (two tries) → check the harness and the page against the image's
@@ -40,31 +39,35 @@ Overpass, but a failure there only leaves them off the board. A list refreshes w
 `lat`, `lon`, `radius_km` or `beach_limit` changes (that is the file name); to refetch otherwise,
 delete the `beaches-` entries under Actions → Caches. OSM beaches change over years, not hours.
 
-### The Brazilian proxy and the flight check
+### The self-hosted runner in Brazil
 
-INEA (Rio) and INEMA (Bahia) answer only Brazilian addresses, and the runners are not in Brazil.
-Before the image is pulled, `site.yml` joins the org's tailnet (`TAILSCALE_OAUTH_CLIENT_ID` and
-`TAILSCALE_OAUTH_SECRET`), runs the flight check (`scripts/br-proxy-preflight.sh`: the first online
-`tag:br-proxy` node through which INEA really answers) and routes those two hosts, and only those,
-through it (`scripts/br-proxy.sh`, with the app's JVM pointed at it). The `MAROLA_BR_PROXY` secret
-overrides the pool with any HTTP proxy in Brazil.
+INEA (Rio) and INEMA (Bahia) answer only Brazilian addresses, and GitHub's runners are not in
+Brazil. So `site.yml`'s build job runs on a self-hosted runner labelled `marola-br`, on a machine in
+Brazil, and reaches both directly: no proxy and no open port, since the runner only connects out to
+GitHub. The deploy job stays on GitHub's runners.
 
-The flight check **fails closed**, on every trigger: no tailnet or no healthy node stops the job with an `::error::` naming the cause, before any board is
-built. Nothing deploys, and marola.dev keeps serving the last deployed site, for every area. The
-repo variable `BR_PROXY_REQUIRED=false` is the break glass: the build then goes on without the
-proxy and those two agencies read "no data". Unset means required; set it only while the pool is
-down. `just site-build` routes the same way when `MAROLA_BR_PROXY` is set in your shell, and
-without it builds as before. The pool, its nodes and the whole Tailscale setup:
-[`ops/br-proxy/README.md`](../ops/br-proxy/README.md) and
-[`ops/br-proxy/JOIN.md`](../ops/br-proxy/JOIN.md).
+`site.yml` runs only by hand for now, from the Actions tab or `gh workflow run site.yml` (pick an
+area, or `all`, the default). With the runner off, a run waits in the queue and marola.dev keeps
+the last deployed site. Only an owner (a repo admin) can run it: the `owner` job, on GitHub's
+runner, fails the run before the build job reaches the self-hosted one. Registering the runner,
+from the devkit:
+
+```bash
+MAROLA_RUNNER_REPO=marola-dev/marola-site MAROLA_RUNNER_PREFIX=marola-site \
+  MAROLA_RUNNER_LABELS=marola-br just runners 1
+```
+
+A public repo's self-hosted runner runs whatever a workflow in a pull request asks it to, so keep
+Settings → Actions → "Approval for running fork pull request workflows" on *all external
+contributors*. `just site-build` works the same from any machine in Brazil.
 
 ## The `site-data` branch layout
 
 An orphan branch, never deployed by the workflows that write it: `coverage/` and `smoke/` (the
 app's CI and `docker-smoke.yml`), `stats/` (the umbrella). Each writer pushes with
 `scripts/site-data-push.sh` (retries on a rejected push, replaying its one commit onto the new
-tip) and then sends `repository_dispatch: site-data-updated` so `site.yml` refreshes the panels
-without waiting for its schedule. A directory missing from the branch just means no panel for it;
+tip) and then sends `repository_dispatch: site-data-updated`, which `site.yml` ignores while it runs
+only by hand: the panels refresh on the next manual run. A directory missing from the branch just means no panel for it;
 a missing branch means none of the three.
 
 ## Health checks
