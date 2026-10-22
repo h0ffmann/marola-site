@@ -43,7 +43,8 @@ map-load tier, billed above it).
   (the public Mapbox token into `mapbox-config.js` at deploy), `redirect_check.js` (the 404
   forwarder), `board-schema.sh` (the image pin and its schema), `stamp_site_version.sh`,
   `site_live_check.py` (what marola.dev actually serves), `site-data-push.sh` (the retrying push
-  every `site-data` writer uses), `mip-trailer-check.sh`.
+  every `site-data` writer uses), `mip-trailer-check.sh`, `runner-guard.sh` (the self-hosted
+  runner's job guard).
 - `site.yml`'s build runs on a self-hosted runner in Brazil (label `marola-br`), because INEA and
   INEMA answer only Brazilian addresses, and only by hand for now
   ([`docs/3-development.md`](docs/3-development.md#the-self-hosted-runner-in-brazil)).
